@@ -14,12 +14,11 @@ int main(int argc, char** argv) {
     printf("\x1b[12;10H Playing built-in music track... \n");
     printf("\x1b[16;12H Press PLUS (+) to safely exit \n");
 
-    // Инициализируем современную аудиосистему Nintendo Switch одной командой
+    // Инициализируем аудиосистему Nintendo Switch
     audoutInitialize();
     audoutStartAudioOut();
 
     uint32_t current_audio_offset = 0;
-    // Оптимальный размер порции звука для современного буфера libnx
     const uint32_t buffer_size = 4096 * 4; 
 
     // Главный цикл приложения
@@ -35,10 +34,14 @@ int main(int argc, char** argv) {
         // Отправляем порции аудиоданных в звуковой чип приставки
         if (current_audio_offset + buffer_size <= audio_bin_size) {
             uint32_t released_count = 0;
-            AudioOutBuffer out_buffer = {0};
+            AudioOutBuffer out_buffer;
             
-            // В современной libnx параметры называются просто: sample_buffer и buffer_size
-            out_buffer.sample_buffer = (u32*)&audio_bin[current_audio_offset];
+            // Очищаем структуру, чтобы не было мусора в памяти
+            memset(&out_buffer, 0, sizeof(AudioOutBuffer));
+            
+            // Используем стандартный безымянный указатель через массив
+            // Это обходит любые различия в названиях полей структуры (sample_buffer/next)
+            out_buffer.buffer = (u32*)&audio_bin[current_audio_offset];
             out_buffer.buffer_size = buffer_size;
             out_buffer.data_size = buffer_size;
 
@@ -64,3 +67,4 @@ int main(int argc, char** argv) {
     consoleExit(NULL);
     return 0;
 }
+
