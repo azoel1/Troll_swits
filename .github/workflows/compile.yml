@@ -9,47 +9,18 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install ffmpeg and imagemagick
-        run: |
-          apt-get update && apt-get install -y ffmpeg imagemagick curl
-
-      - name: Auto-Download and Process Game Assets
-        run: |
-          # Создаем папку для ресурсов
-          mkdir -p data
-          
-          # Скачиваем 100% реальный и чистый звук крика по прямой ссылке
-          curl -L "https://google.com" -o data/scream.ogg
-          
-          # Скачиваем жуткое лицо монстра из надежного фото-хостинга
-          curl -L "https://unsplash.com" -o data/scamer.jpeg
-          
-          # Переводим аудио из OGG в сырые аудио-байты PCM (16-bit, стерео, 44100Hz)
-          ffmpeg -i data/scream.ogg -f s16le -acodec pcm_s16le -ar 44100 -ac 2 data/scream.bin
-          
-          # Принудительно кадрируем картинку монстра под экран Switch (1280x720) и превращаем в RGB пиксели
-          convert data/scamer.jpeg -resize 1280x720! -depth 8 rgb:data/scamer.bin
-
       - name: Compile App
         run: |
-          # Превращаем бинарные медиа-файлы в ассемблерный код
-          /opt/devkitpro/tools/bin/bin2s data/scream.bin > scream.s
-          /opt/devkitpro/tools/bin/bin2s data/scamer.bin > scamer.s
-          
-          # Компилируем их в объектные файлы
-          /opt/devkitpro/devkitA64/bin/aarch64-none-elf-gcc -c scream.s -o scream_bin.o
-          /opt/devkitpro/devkitA64/bin/aarch64-none-elf-gcc -c scamer.s -o scamer_bin.o
-
           # Компилируем основной C++ код игры
           /opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++ -c -O2 -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE -I/opt/devkitpro/libnx/include -D__SWITCH__ source/main.cpp -o main.o
 
-          # Линкуем всё в один исполняемый файл
-          /opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++ -specs=/opt/devkitpro/libnx/switch.specs -g -fPIE -pie main.o scream_bin.o scamer_bin.o -L/opt/devkitpro/libnx/lib -lnx -o maze.elf
+          # Линкуем чистую libnx
+          /opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++ -specs=/opt/devkitpro/libnx/switch.specs -g -fPIE -pie main.o -L/opt/devkitpro/libnx/lib -lnx -o maze.elf
 
           # Генерируем метаданные для твоего форвардера
           /opt/devkitpro/tools/bin/nacptool --create "SCARY MAZE" "User" "1.0.0" control.nacp --titleid="0x019731D6A0D80000"
           
-          # Собираем финальный NRO файл лабиринта под нужным именем gemini.nro
+          # Собираем финальный NRO файл под нужным именем gemini.nro
           /opt/devkitpro/tools/bin/elf2nro maze.elf gemini.nro --nacp=control.nacp
 
       - name: Upload NRO Result
