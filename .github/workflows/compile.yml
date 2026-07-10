@@ -11,13 +11,13 @@ jobs:
 
       - name: Hardcode Compilation
         run: |
-          # 1. Компилируем обновленный C++ код
+          # 1. Компилируем C++ код
           /opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++ -c -O2 -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE -I/opt/devkitpro/libnx/include -D__SWITCH__ source/main.cpp -o main.o
 
-          # 2. Линкуем в ELF-формат
-          /opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++ -specs=/opt/devkitpro/libnx/switch.specs -g main.o -L/opt/devkitpro/libnx/lib -lnx -o rickrolled.elf
+          # 2. Линкуем в ELF-формат с флагами позиционно-независимого кода
+          /opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++ -specs=/opt/devkitpro/libnx/switch.specs -g -fPIE -pie main.o -L/opt/devkitpro/libnx/lib -lnx -o rickrolled.elf
 
-          # 3. Собираем финальный NRO файл, используя твой xml
+          # 3. Собираем финальный NRO файл
           /opt/devkitpro/tools/bin/elf2nro rickrolled.elf rickrolled.nro --nacp=app.xml
 
       - name: Upload NRO Result
@@ -26,5 +26,4 @@ jobs:
           name: switch-executable
           path: |
             rickrolled.nro
-            
             
