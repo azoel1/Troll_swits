@@ -6,8 +6,8 @@
 #define MAZE_W 15
 #define MAZE_H 9
 
-// 10 уровней. На 10-м уровне стоит цифра 4 (скример)
-int levels[MAZE_H][MAZE_W] = {
+// Трёхмерный массив: 10 уровней, в каждом 9 строк и 15 колонок
+int levels[10][MAZE_H][MAZE_W] = {
     // Уровень 1
     {{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},{1,0,0,0,1,0,0,0,0,0,1,0,0,3,1},{1,1,1,0,1,0,1,1,1,0,1,0,1,1,1},{1,0,0,0,0,0,1,0,1,0,0,0,0,0,1},{1,0,1,1,1,1,1,0,1,1,1,1,1,0,1},{1,0,0,0,1,0,0,0,0,0,1,0,0,0,1},{1,1,1,0,1,0,1,1,1,0,1,0,1,1,1},{1,0,0,0,0,0,1,0,1,0,0,0,0,0,1},{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}},
     // Уровень 2
@@ -30,26 +30,23 @@ int levels[MAZE_H][MAZE_W] = {
     {{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},{1,0,0,0,0,0,0,0,0,0,0,0,0,0,1},{1,1,1,1,1,1,1,0,1,1,1,1,1,0,1},{1,0,0,0,0,0,1,0,1,0,0,0,1,0,1},{1,0,1,1,1,0,1,0,1,0,1,0,1,0,1},{1,0,1,0,1,0,0,4,0,0,1,0,0,0,1},{1,0,1,0,1,1,1,1,1,1,1,1,1,0,1},{1,0,0,0,0,0,0,0,0,0,0,0,0,3,1},{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}}
 };
 
-// Генератор математического адского шума (без аудиофайлов)
 void play_procedural_scream() {
     audoutInitialize();
     audoutStartAudioOut();
     
     const uint32_t sample_rate = 44100;
-    const uint32_t duration_sec = 2; // Сколько секунд орет скример
+    const uint32_t duration_sec = 2; 
     const uint32_t chunk_size = 4096 * 4;
     
-    uint32_t total_samples = sample_rate * duration_sec * 2; // Стерео
+    uint32_t total_samples = sample_rate * duration_sec * 2; 
     int16_t* audio_buffer = (int16_t*)malloc(total_samples * sizeof(int16_t));
     
-    // Заполняем буфер жутким пугающим скрежетом
     for (uint32_t i = 0; i < total_samples; i += 2) {
-        // Математический агрессивный скрежет
         int16_t noise = (rand() % 16384) - 8192;
-        int16_t tone = (i % 44 < 22) ? 12000 : -12000; // Пронзительный писк
+        int16_t tone = (i % 44 < 22) ? 12000 : -12000; 
         
-        audio_buffer[i] = noise + tone;     // Левый канал
-        audio_buffer[i+1] = noise + tone;   // Правый канал
+        audio_buffer[i] = noise + tone;     
+        audio_buffer[i+1] = noise + tone;   
     }
 
     uint32_t offset = 0;
@@ -116,7 +113,6 @@ int main(int argc, char** argv) {
                 scream_triggered = true;
             }
 
-            // Рисуем лабиринт
             for (int y = 0; y < 720; y++) {
                 for (int x = 0; x < 1280; x++) {
                     int cell_x = x / (1280 / MAZE_W);
@@ -134,7 +130,7 @@ int main(int argc, char** argv) {
                     int px = player_x * block_w + (block_w / 4);
                     int py = player_y * block_h + (block_h / 4);
                     if (x >= px && x < px + 30 && y >= py && y < py + 30) {
-                        color = RGBA8(52, 152, 219, 255); // Игрок
+                        color = RGBA8(52, 152, 219, 255); 
                     }
 
                     framebuf[y * stride / 4 + x] = color;
@@ -142,7 +138,6 @@ int main(int argc, char** argv) {
             }
 
         } else {
-            // ЭКРАН СКРИМЕРА: Генерируем страшные красно-черные мигающие помехи смерти!
             for (int y = 0; y < 720; y++) {
                 for (int x = 0; x < 1280; x++) {
                     uint8_t red_noise = rand() % 255;
@@ -151,7 +146,6 @@ int main(int argc, char** argv) {
             }
             framebufferEnd(&fb);
 
-            // Включаем процедурный ор
             play_procedural_scream();
             
             scream_triggered = false; 
