@@ -1,4 +1,4 @@
-name: Build Switch Hardcore Embedded Video
+name: Build Switch Ultra Video Player
 on: [push, workflow_dispatch]
 
 jobs:
@@ -11,18 +11,17 @@ jobs:
 
       - name: Install ffmpeg on host
         run: |
-          # Устанавливаем ffmpeg прямо в систему сервера
+          # Устанавливаем ffmpeg прямо в систему сервера GitHub
           apt-get update && apt-get install -y ffmpeg
 
       - name: Convert MP4 to RAW Video Pixels
         run: |
-          # Конвертируем skibidi.mp4 в сырой поток байт (разрешение 400x240, чтобы не кончилась память)
-          # На выходе получаем файл, где каждый кадр — это просто набор пикселей
-          ffmpeg -i data/skibidi.mp4 -f rawvideo -pix_fmt rgb24 -s 400x240 data/raw_video.bin
+          # Ужимаем skibidi.mp4 до 256x144 и 10 кадров в секунду, чтобы файл весил мало и помещался в память
+          ffmpeg -i data/skibidi.mp4 -f rawvideo -pix_fmt rgb24 -s 256x144 -r 10 data/raw_video.bin
 
       - name: Compile App
         run: |
-          # 1. Превращаем сырые пиксели в ассемблерный код
+          # 1. Превращаем оптимизированные пиксели в ассемблерный код
           /opt/devkitpro/tools/bin/bin2s data/raw_video.bin > video.s
           
           # 2. Компилируем этот файл в объектный код
@@ -31,11 +30,13 @@ jobs:
           # 3. Компилируем основной C++ код
           /opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++ -c -O2 -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE -I/opt/devkitpro/libnx/include -D__SWITCH__ source/main.cpp -o main.o
 
-          # 4. Линкуем всё вместе (только чистая libnx, никакой сети!)
+          # 4. Линкуем всё вместе (чистая libnx, без внешних сетевых библиотек)
           /opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++ -specs=/opt/devkitpro/libnx/switch.specs -g -fPIE -pie main.o video_bin.o -L/opt/devkitpro/libnx/lib -lnx -o gemini.elf
 
-          # 5. Собираем итоговый NRO файл
+          # 5. Создаем метаданные с твоим TitleID
           /opt/devkitpro/tools/bin/nacptool --create "RICKROLLED" "User" "1.0.0" control.nacp --titleid="0x019731D6A0D80000"
+          
+          # 6. Собираем итоговый NRO файл с jpeg-иконкой
           /opt/devkitpro/tools/bin/elf2nro gemini.elf gemini.nro --nacp=control.nacp --icon=icon.jpeg
 
       - name: Upload NRO Result
@@ -44,5 +45,6 @@ jobs:
           name: switch-executable
           path: |
             gemini.nro
+            
             
             
