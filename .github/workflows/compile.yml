@@ -9,9 +9,14 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install Graphic and Video Libraries
+      - name: Bypass 403 and Install Libraries
         run: |
-          dkp-pacman -Syu --noconfirm switch-sdl2 switch-ffmpeg switch-libjpeg-turbo
+          # Прописываем User-Agent для обхода блокировки Cloudflare на серверах devkitpro
+          sed -i 's|#XferCommand = /usr/bin/wget|XferCommand = /usr/bin/wget -U "dkp-pacman" --passive-ftp -c -O %o %u|g' /etc/pacman.conf
+          
+          # Синхронизируем базы данных и качаем нужные видео-библиотеки
+          dkp-pacman -Syy --noconfirm
+          dkp-pacman -S --noconfirm switch-sdl2 switch-ffmpeg switch-libjpeg-turbo
 
       - name: Compile Video App with Embedded Assets
         run: |
@@ -37,5 +42,4 @@ jobs:
           name: switch-executable
           path: |
             gemini.nro
-            
             
