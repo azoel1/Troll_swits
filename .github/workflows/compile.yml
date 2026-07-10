@@ -17,14 +17,16 @@ jobs:
           # 2. Компилируем этот файл в объектный код
           /opt/devkitpro/devkitA64/bin/aarch64-none-elf-gcc -c video.s -o video_bin.o
 
-          # 3. Компилируем основной C++ код (только стандартная libnx)
+          # 3. Компилируем основной C++ код
           /opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++ -c -O2 -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE -I/opt/devkitpro/libnx/include -D__SWITCH__ source/main.cpp -o main.o
 
           # 4. Линкуем всё вместе
           /opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++ -specs=/opt/devkitpro/libnx/switch.specs -g -fPIE -pie main.o video_bin.o -L/opt/devkitpro/libnx/lib -lnx -o gemini.elf
 
-          # 5. Собираем итоговый NRO файл
-          /opt/devkitpro/tools/bin/nacptool --create-xml app.xml control.nacp
+          # 5. Генерируем метаданные напрямую командами, обходя капризный синтаксис xml
+          /opt/devkitpro/tools/bin/nacptool --create "RICKROLLED" "User" "1.0.0" control.nacp --titleid="0x019731D6A0D80000"
+
+          # 6. Собираем итоговый NRO файл
           /opt/devkitpro/tools/bin/elf2nro gemini.elf gemini.nro --nacp=control.nacp --icon=icon.jpg
 
       - name: Upload NRO Result
