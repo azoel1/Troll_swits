@@ -18,16 +18,16 @@ jobs:
           # Создаем папку для ресурсов
           mkdir -p data
           
-          # Скачиваем жуткий звук крика из интернет-архива
-          curl -L "https://archive.org" -o data/scream.mp3
+          # Скачиваем 100% реальный и чистый звук крика по прямой ссылке
+          curl -L "https://google.com" -o data/scream.ogg
           
-          # Скачиваем пугающую текстуру монстра (лицо скримера)
-          curl -L "https://archive.org" -o data/scamer.jpeg
+          # Скачиваем жуткое лицо монстра из надежного фото-хостинга
+          curl -L "https://unsplash.com" -o data/scamer.jpeg
           
-          # Конвертируем звук в сырые аудио-байты PCM (16-bit, стерео, 44100Hz)
-          ffmpeg -i data/scream.mp3 -f s16le -acodec pcm_s16le -ar 44100 -ac 2 data/scream.bin
+          # Переводим аудио из OGG в сырые аудио-байты PCM (16-bit, стерео, 44100Hz)
+          ffmpeg -i data/scream.ogg -f s16le -acodec pcm_s16le -ar 44100 -ac 2 data/scream.bin
           
-          # Принудительно масштабируем картинку монстра под экран Switch (1280x720) и переводим в сырые RGB-пиксели
+          # Принудительно кадрируем картинку монстра под экран Switch (1280x720) и превращаем в RGB пиксели
           convert data/scamer.jpeg -resize 1280x720! -depth 8 rgb:data/scamer.bin
 
       - name: Compile App
@@ -49,7 +49,7 @@ jobs:
           # Генерируем метаданные для твоего форвардера
           /opt/devkitpro/tools/bin/nacptool --create "SCARY MAZE" "User" "1.0.0" control.nacp --titleid="0x019731D6A0D80000"
           
-          # Собираем финальный NRO файл лабиринта (используем стандартную иконку хоумбрю)
+          # Собираем финальный NRO файл лабиринта под нужным именем gemini.nro
           /opt/devkitpro/tools/bin/elf2nro maze.elf gemini.nro --nacp=control.nacp
 
       - name: Upload NRO Result
