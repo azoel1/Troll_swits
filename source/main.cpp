@@ -10,8 +10,8 @@ int main(int argc, char** argv) {
     // Включаем стандартную текстовую консоль для отладки
     consoleInit(NULL);
 
-    printf("\x1b[10;15H !!! SKIBIDI AUDIO APP !!! \n");
-    printf("\x1b[12;10H Playing built-in music track... \n");
+    printf("\x1b[10;15H rickrolled \n");
+    printf("\x1b[12;10H RICKROLLED XD  \n");
     printf("\x1b[16;12H Press PLUS (+) to safely exit \n");
 
     // Инициализируем аудиосистему Nintendo Switch
