@@ -1,4 +1,4 @@
-name: Build Switch NRO
+name:name: Build Switch Embedded Video Player
 on: [push, workflow_dispatch]
 
 jobs:
@@ -9,21 +9,33 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Hardcode Compilation
+      - name: Install Graphic and Video Libraries
         run: |
-          # 1. Компилируем C++ код
-          /opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++ -c -O2 -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE -I/opt/devkitpro/libnx/include -D__SWITCH__ source/main.cpp -o main.o
+          dkp-pacman -Syu --noconfirm switch-sdl2 switch-ffmpeg switch-libjpeg-turbo
 
-          # 2. Линкуем в ELF-формат с флагами позиционно-независимого кода
-          /opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++ -specs=/opt/devkitpro/libnx/switch.specs -g -fPIE -pie main.o -L/opt/devkitpro/libnx/lib -lnx -o rickrolled.elf
+      - name: Compile Video App with Embedded Assets
+        run: |
+          # 1. Превращаем твой skibidi.mp4 в ассемблерный код (.s)
+          /opt/devkitpro/tools/bin/bin2s data/skibidi.mp4 > video.s
+          
+          # 2. Компилируем этот файл в объектный код
+          /opt/devkitpro/devkitA64/bin/aarch64-none-elf-gcc -c video.s -o video_bin.o
 
-          # 3. Собираем финальный NRO файл
-          /opt/devkitpro/tools/bin/elf2nro rickrolled.elf rickrolled.nro --nacp=app.xml
+          # 3. Компилируем основной C++ код
+          /opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++ -c -O2 -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE -I/opt/devkitpro/libnx/include -I/opt/devkitpro/portlibs/switch/include -D__SWITCH__ source/main.cpp -o main.o
+
+          # 4. Линкуем всё в один файл: код + видео + библиотеки
+          /opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++ -specs=/opt/devkitpro/libnx/switch.specs -g -fPIE -pie main.o video_bin.o -L/opt/devkitpro/portlibs/switch/lib -L/opt/devkitpro/libnx/lib -lSDL2 -lavformat -lavcodec -lswscale -lavutil -lnx -o gemini.elf
+
+          # 5. Создаем метаданные и собираем итоговый NRO
+          /opt/devkitpro/tools/bin/nacptool --create-xml app.xml control.nacp
+          /opt/devkitpro/tools/bin/elf2nro gemini.elf gemini.nro --nacp=control.nacp --icon=icon.jpg
 
       - name: Upload NRO Result
         uses: actions/upload-artifact@v4
         with:
           name: switch-executable
           path: |
-            rickrolled.nro
+            gemini.nro
+            
             
