@@ -1,6 +1,5 @@
 name: Build Switch Scream Maze
 on: [push, workflow_dispatch]
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -8,14 +7,12 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-
       - name: Direct Compilation
         run: |
           /opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++ -c -O2 -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE -I/opt/devkitpro/libnx/include -D__SWITCH__ source/main.cpp -o main.o
           /opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++ -specs=/opt/devkitpro/libnx/switch.specs -g -fPIE -pie main.o -L/opt/devkitpro/portlibs/switch/lib -L/opt/devkitpro/libnx/lib -lnx -o maze.elf
           /opt/devkitpro/tools/bin/nacptool --create "SCARY MAZE" "User" "1.0.0" control.nacp --titleid="0x019731D6A0D80000"
           /opt/devkitpro/tools/bin/elf2nro maze.elf gemini.nro --nacp=control.nacp
-
       - name: Upload NRO Result
         uses: actions/upload-artifact@v4
         with:
