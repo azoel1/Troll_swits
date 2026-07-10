@@ -1,4 +1,4 @@
-name: Build Switch Ultra Video Player
+name: Build Switch Audio App
 on: [push, workflow_dispatch]
 
 jobs:
@@ -11,30 +11,30 @@ jobs:
 
       - name: Install ffmpeg on host
         run: |
-          # Устанавливаем ffmpeg прямо в систему сервера GitHub
+          # Устанавливаем ffmpeg для конвертации музыки на сервере
           apt-get update && apt-get install -y ffmpeg
 
-      - name: Convert MP4 to RAW Video Pixels
+      - name: Convert MP3 to RAW PCM Audio
         run: |
-          # Ужимаем skibidi.mp4 до 256x144 и 10 кадров в секунду, чтобы файл весил мало и помещался в память
-          ffmpeg -i data/skibidi.mp4 -f rawvideo -pix_fmt rgb24 -s 256x144 -r 10 data/raw_video.bin
+          # Конвертируем mp3 в сырые аудио-байты (16-bit, стерео, 44100Hz)
+          ffmpeg -i data/skibidi.mp3 -f s16le -acodec pcm_s16le -ar 44100 -ac 2 data/audio.bin
 
       - name: Compile App
         run: |
-          # 1. Превращаем оптимизированные пиксели в ассемблерный код
-          /opt/devkitpro/tools/bin/bin2s data/raw_video.bin > video.s
+          # 1. Превращаем аудио-байты в ассемблерный код
+          /opt/devkitpro/tools/bin/bin2s data/audio.bin > audio.s
           
           # 2. Компилируем этот файл в объектный код
-          /opt/devkitpro/devkitA64/bin/aarch64-none-elf-gcc -c video.s -o video_bin.o
+          /opt/devkitpro/devkitA64/bin/aarch64-none-elf-gcc -c audio.s -o audio_bin.o
 
           # 3. Компилируем основной C++ код
           /opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++ -c -O2 -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE -I/opt/devkitpro/libnx/include -D__SWITCH__ source/main.cpp -o main.o
 
-          # 4. Линкуем всё вместе (чистая libnx, без внешних сетевых библиотек)
-          /opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++ -specs=/opt/devkitpro/libnx/switch.specs -g -fPIE -pie main.o video_bin.o -L/opt/devkitpro/libnx/lib -lnx -o gemini.elf
+          # 4. Линкуем код и аудио вместе
+          /opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++ -specs=/opt/devkitpro/libnx/switch.specs -g -fPIE -pie main.o audio_bin.o -L/opt/devkitpro/libnx/lib -lnx -o gemini.elf
 
           # 5. Создаем метаданные с твоим TitleID
-          /opt/devkitpro/tools/bin/nacptool --create "RICKROLLED" "User" "1.0.0" control.nacp --titleid="0x019731D6A0D80000"
+          /opt/devkitpro/tools/bin/nacptool --create "SKIBIDI PLAYER" "User" "1.0.0" control.nacp --titleid="0x019731D6A0D80000"
           
           # 6. Собираем итоговый NRO файл с jpeg-иконкой
           /opt/devkitpro/tools/bin/elf2nro gemini.elf gemini.nro --nacp=control.nacp --icon=icon.jpeg
