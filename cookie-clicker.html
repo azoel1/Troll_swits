@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookie Clicker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .cookie-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cookie-btn {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ffd89b, #d4a574);
+            border: 3px solid #b8860b;
+            cursor: pointer;
+            font-size: 80px;
+            transition: transform 0.1s, box-shadow 0.1s;
+            box-shadow: 0 10px 30px rgba(212, 165, 116, 0.4);
+        }
+
+        .cookie-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .cookie-btn:active {
+            transform: scale(0.95);
+        }
+
+        .stats {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .stat-line {
+            font-size: 1.2em;
+            color: #555;
+            margin: 10px 0;
+        }
+
+        .cookies-count {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .cps {
+            font-size: 0.9em;
+            color: #999;
+        }
+
+        .upgrades-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .upgrades-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .upgrades-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .upgrade-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: bold;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        .upgrade-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .upgrade-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .upgrade-name {
+            display: block;
+            font-size: 0.8em;
+            margin-bottom: 5px;
+        }
+
+        .upgrade-cost {
+            display: block;
+            font-size: 0.7em;
+            opacity: 0.9;
+        }
+
+        .reset-btn {
+            width: 100%;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: background 0.2s;
+        }
+
+        .reset-btn:hover {
+            background: #ff5252;
+        }
+
+        .floating-text {
+            position: fixed;
+            pointer-events: none;
+            font-weight: bold;
+            font-size: 1.5em;
+            color: #667eea;
+            animation: float-up 1s ease-out forwards;
+        }
+
+        @keyframes float-up {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px) scale(1.2);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .game-area {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .cookie-btn {
+                width: 120px;
+                height: 120px;
+                font-size: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍪 Cookie Clicker</h1>
+        
+        <div class="game-area">
+            <div class="cookie-section">
+                <button class="cookie-btn" id="cookieBtn">🍪</button>
+                <div class="stats">
+                    <div class="cookies-count" id="cookieCount">0</div>
+                    <div class="cps" id="cps">Per second: 0</div>
+                </div>
+            </div>
+
+            <div class="upgrades-section">
+                <h2>Upgrades</h2>
+                <div class="upgrades-grid" id="upgradesContainer"></div>
+            </div>
+        </div>
+
+        <button class="reset-btn" onclick="resetGame()">Reset Game</button>
+    </div>
+
+    <script>
+        const UPGRADES = [
+            { name: 'Grandma', cost: 10, income: 0.1, icon: '👵' },
+            { name: 'Farm', cost: 100, income: 1, icon: '🚜' },
+            { name: 'Factory', cost: 1000, income: 10, icon: '🏭' },
+            { name: 'Bank', cost: 10000, income: 100, icon: '🏦' },
+            { name: 'Wizard Tower', cost: 100000, income: 1000, icon: '🧙' },
+            { name: 'Rocket', cost: 1000000, income: 10000, icon: '🚀' }
+        ];
+
+        let gameState = {
+            cookies: 0,
+            upgrades: {},
+            cps: 0
+        };
+
+        // Load game from localStorage
+        function loadGame() {
+            const saved = localStorage.getItem('cookieClickerGame');
+            if (saved) {
+                gameState = JSON.parse(saved);
+            }
+            UPGRADES.forEach(u => {
+                if (!gameState.upgrades[u.name]) {
+                    gameState.upgrades[u.name] = 0;
+                }
+            });
+            updateCPS();
+            render();
+        }
+
+        // Save game to localStorage
+        function saveGame() {
+            localStorage.setItem('cookieClickerGame', JSON.stringify(gameState));
+        }
+
+        function updateCPS() {
+            gameState.cps = 0;
+            UPGRADES.forEach(upgrade => {
+                gameState.cps += (gameState.upgrades[upgrade.name] || 0) * upgrade.income;
+            });
+        }
+
+        function addCookie(amount = 1) {
+            gameState.cookies += amount;
+            saveGame();
+            render();
+
+            // Floating text animation
+            const floatingText = document.createElement('div');
+            floatingText.className = 'floating-text';
+            floatingText.textContent = '+' + amount;
+            floatingText.style.left = Math.random() * window.innerWidth + 'px';
+            floatingText.style.top = Math.random() * window.innerHeight + 'px';
+            document.body.appendChild(floatingText);
+            setTimeout(() => floatingText.remove(), 1000);
+        }
+
+        function buyUpgrade(index) {
+            const upgrade = UPGRADES[index];
+            if (gameState.cookies >= upgrade.cost) {
+                gameState.cookies -= upgrade.cost;
+                gameState.upgrades[upgrade.name]++;
+                updateCPS();
+                saveGame();
+                render();
+            }
+        }
+
+        function resetGame() {
+            if (confirm('Are you sure you want to reset? This cannot be undone!')) {
+                gameState = {
+                    cookies: 0,
+                    upgrades: {},
+                    cps: 0
+                };
+                UPGRADES.forEach(u => {
+                    gameState.upgrades[u.name] = 0;
+                });
+                saveGame();
+                render();
+            }
+        }
+
+        function render() {
+            document.getElementById('cookieCount').textContent = Math.floor(gameState.cookies);
+            document.getElementById('cps').textContent = `Per second: ${gameState.cps.toFixed(1)}`;
+
+            const container = document.getElementById('upgradesContainer');
+            container.innerHTML = '';
+
+            UPGRADES.forEach((upgrade, index) => {
+                const count = gameState.upgrades[upgrade.name] || 0;
+                const canAfford = gameState.cookies >= upgrade.cost;
+                const btn = document.createElement('button');
+                btn.className = 'upgrade-btn';
+                btn.disabled = !canAfford;
+                btn.innerHTML = `
+                    <span>${upgrade.icon}</span>
+                    <span class="upgrade-name">${upgrade.name} (${count})</span>
+                    <span class="upgrade-cost">${Math.floor(upgrade.cost)}</span>
+                `;
+                btn.onclick = () => buyUpgrade(index);
+                container.appendChild(btn);
+            });
+        }
+
+        // Auto-income from upgrades
+        setInterval(() => {
+            if (gameState.cps > 0) {
+                addCookie(gameState.cps / 10); // Divided by 10 for smoother updates
+            }
+        }, 100);
+
+        // Save every 10 seconds
+        setInterval(saveGame, 10000);
+
+        // Click handler
+        document.getElementById('cookieBtn').addEventListener('click', () => addCookie(1));
+
+        // Initialize
+        loadGame();
+    </script>
+</body>
+</html>
