@@ -1,0 +1,31 @@
+# Cordova/Android
+platforms/
+plugins/
+www/
+node_modules/
+.gradle/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.apk
+*.aar
+*.jks
+*.keystore
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local

@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.azoel.cookieclicker" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Cookie Clicker</name>
+    <description>A simple cookie clicker game</description>
+    <author email="dev@azoel.com" href="https://azoel.com">Azoel22</author>
+    
+    <content src="index.html" />
+    
+    <preference name="Orientation" value="portrait" />
+    <preference name="FullScreen" value="false" />
+    <preference name="ShowTitle" value="true" />
+    
+    <platform name="android">
+        <allow-intent href="market:*" />
+        <icon src="res/icon/android/icon-96-96.png" density="nodpi" />
+    </platform>
+    
+    <platform name="ios">
+        <allow-intent href="itms:*" />
+        <allow-intent href="itms-apps:*" />
+    </platform>
+    
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="geo:*" />
+</widget>
