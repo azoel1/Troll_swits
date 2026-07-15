@@ -31,28 +31,25 @@ jobs:
     - name: Install Cordova
       run: npm install -g cordova
 
-    - name: Create project structure
+    - name: Create Cordova project
       run: |
-        mkdir -p www
-        cp cookie-clicker.html www/index.html
-        cp config.xml .
-
-    - name: Add Android platform
-      run: cordova platform add android
-
-    - name: Build APK
-      run: cordova build android --release
+        cordova create cookieclicker-app com.azoel.cookieclicker "Cookie Clicker"
+        cd cookieclicker-app
+        cp ../config.xml .
+        cp ../cookie-clicker.html www/index.html
+        cordova platform add android
+        cordova build android --release
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
         name: cookie-clicker-apk
-        path: platforms/android/app/build/outputs/apk/release/*.apk
+        path: cookieclicker-app/platforms/android/app/build/outputs/apk/release/*.apk
 
     - name: Create GitHub Release
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
-        files: platforms/android/app/build/outputs/apk/release/*.apk
+        files: cookieclicker-app/platforms/android/app/build/outputs/apk/release/*.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
