@@ -1,20 +1,38 @@
-ifeq ($(strip $(DEVKITPRO)),)
-$(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>/devkitpro")
-endif
+.PHONY: help setup build-apk clean install
 
-TOPDIR ?= $(CURDIR)
-include $(DEVKITPRO)/libnx/switch_rules
+help:
+	@echo "Cookie Clicker - APK Builder"
+	@echo ""
+	@echo "Available commands:"
+	@echo "  make setup       - Install dependencies (Node.js, Cordova)"
+	@echo "  make build-apk   - Build the APK"
+	@echo "  make clean       - Clean build artifacts"
+	@echo "  make install     - Install dependencies and build"
 
-TARGET := rickrolled
-BUILD := build
-SOURCES := source
-DATA := data
-INCLUDES := include
+setup:
+	@echo "Installing Cordova CLI..."
+	npm install -g cordova@latest
+	@echo "Creating Cordova project..."
+	cordova create . com.azoel.cookieclicker "Cookie Clicker" || true
+	@echo "Adding Android platform..."
+	cd . && cordova platform add android || true
 
-EXEFS_SRC := exefs
+build-apk:
+	@echo "Building APK..."
+	mkdir -p www
+	cp cookie-clicker.html www/index.html
+	cordova build android --release
 
-APP_TITLE := RICKROLLED
-APP_AUTHOR := User
-APP_VERSION := 1.0.0
+clean:
+	@echo "Cleaning build artifacts..."
+	rm -rf platforms/
+	rm -rf plugins/
+	rm -rf www/
+	rm -rf node_modules/
 
-include $(DEVKITPRO)/devkitA64/base_rules
+install: setup build-apk
+	@echo "✅ APK built successfully!"
+	@echo "APK location: platforms/android/app/build/outputs/apk/release/"
+
+release: build-apk
+	@echo "📦 Build complete! Ready for GitHub release."
